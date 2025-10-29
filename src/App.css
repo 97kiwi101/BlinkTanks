@@ -1,0 +1,87 @@
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.add-task-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.task-input {
+  flex: 1;
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+}
+
+.task-input:focus {
+  border-color: #4a90e2;
+}
+
+.add-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #357abd;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  border: 1px solid #eee;
+}
+
+.task-text.completed {
+  text-decoration: line-through;
+  color: #888;
+  opacity: 0.6;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 16px;
+  color: #333;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.delete-button:hover {
+  opacity: 1;
+}
