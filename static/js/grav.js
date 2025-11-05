@@ -14,7 +14,7 @@ let myGamePiece;
 
 function startGame() {
     myGameArea.start();
-    myGamePiece = new component(bulletWidth, bulletHeight, bulletColor, bulletX,bulletSpeedX,bulletSpeedY );
+    myGamePiece = new component(bulletWidth, bulletHeight, bulletColor, bulletX,bulletY,bulletSpeedX,bulletSpeedY );
 }
 
 var myGameArea = {
