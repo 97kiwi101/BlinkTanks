@@ -7,13 +7,12 @@ const line = {
     color: 'hsl(180, 100%, 60%)',
     width: 3,
     amplitude: 250, 
-    segments: 21 // Must be ODD for the sharp middle peak
+    segments: 21
 };
 
-// Global arrays to hold our game objects
 let linePoints = [];
 let boxes = [];
-let balls = []; 
+let balls = [];
 
 
 // --- 3. HELPER FUNCTION: GET LINE Y at a specific X ---
@@ -41,9 +40,6 @@ function getLineY(targetX) {
 
 // --- 4. GAME LOGIC FUNCTIONS ---
 
-/**
- * Generates the DATA for the line
- */
 function generateLine() {
     linePoints = []; 
     const segmentWidth = canvas.width / line.segments;
@@ -55,9 +51,6 @@ function generateLine() {
     }
 }
 
-/**
- * Creates two new boxes
- */
 function createBoxes() {
     boxes = []; 
     
@@ -66,10 +59,9 @@ function createBoxes() {
         y: -50,
         width: 30,
         height: 30,
-        color: 'hsl(0, 100%, 60%)', // Red
+        color: 'hsl(0, 100%, 60%)',
         isFalling: true,
         velocityY: 3
-        // **REMOVED** teleportCooldown and teleportTimer
     };
 
     const box2 = {
@@ -77,90 +69,76 @@ function createBoxes() {
         y: -100,
         width: 25,
         height: 25,
-        color: 'hsl(220, 100%, 60%)', // Blue
+        color: 'hsl(220, 100%, 60%)',
         isFalling: true,
         velocityY: 4
-        // **REMOVED** teleportCooldown and teleportTimer
     };
 
     boxes.push(box1, box2);
 }
 
-/**
- * Calculates a new position and teleports the box
- */
 function teleportBox(box) {
-    // --- Define the Cone Angles ---
-    const minAngle = Math.PI / 6; // 30 degrees
-    const maxAngle = 5 * Math.PI / 6; // 150 degrees
+    const minAngle = Math.PI / 6;
+    const maxAngle = 5 * Math.PI / 6;
     const randomAngle = Math.random() * (maxAngle - minAngle) + minAngle;
 
-    // --- Define Teleport Distance ---
     const minDistance = 100;
     const maxDistance = 300;
     const randomDistance = Math.random() * (maxDistance - minDistance) + minDistance;
 
-    // --- Calculate New Position ---
     const dx = Math.cos(randomAngle) * randomDistance;
     const dy = Math.sin(randomAngle) * randomDistance;
 
     let newX = box.x + dx;
-    let newY = box.y - dy; // Subtract dy because Y=0 is the top
+    let newY = box.y - dy;
 
-    // --- Constraint Check (Don't cross the middle) ---
+    // Boundary check
     const middleX = canvas.width / 2;
-    
-    // Check if box is currently on the LEFT side
     if (box.x < middleX) {
-        // It's on the left. It cannot go past the middle.
-        if (newX + box.width > middleX) {
-            newX = middleX - box.width; // Set it to the "end of its side"
-        }
-        // Also check left boundary
-        if (newX < 0) {
-            newX = 0;
-        }
-    } 
-    // Check if box is currently on the RIGHT side
-    else { 
-        // It's on the right. It cannot go past the middle.
-        if (newX < middleX) {
-            newX = middleX; // Set it to the "end of its side"
-        }
-        // Also check right boundary
-        if (newX + box.width > canvas.width) {
-            newX = canvas.width - box.width;
-        }
+        if (newX + box.width > middleX) newX = middleX - box.width;
+        if (newX < 0) newX = 0;
+    } else { 
+        if (newX < middleX) newX = middleX;
+        if (newX + box.width > canvas.width) newX = canvas.width - box.width;
     }
+    if (newY < 0) newY = 0;
 
-    // --- Constraint Check (Top of screen) ---
-    // (This was the old check, we still need it)
-    if (newY < 0) {
-        newY = 0;
-    }
-
-    // --- Apply Teleport ---
     box.x = newX;
     box.y = newY;
-
-    // Reset the box's state
     box.isFalling = true;
 }
 
 /**
- * Creates a ball at the mouse's click position
+ * **UPDATED FUNCTION**
+ * Creates a ball at the mouse's click position with a CONSISTENT arc
  */
 function createBall(event) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
+    // --- NEW: Determine consistent speed based on click side ---
+    const middleX = canvas.width / 2;
+    let initialSpeedX;
+
+    if (mouseX < middleX) {
+        // Clicked on the left, fire right
+        initialSpeedX = 3;
+    } else {
+        // Clicked on the right, fire left
+        initialSpeedX = -3;
+    }
+
     const newBall = {
         x: mouseX,
         y: mouseY,
         radius: 5,
         color: 'hsl(60, 100%, 75%)', // Bright yellow
-        velocityY: 2 // How fast the ball falls
+        
+        // --- NEW: Use consistent speeds, not random ---
+        speedX: initialSpeedX,
+        speedY: -6,  // Always fire with a strong upward speed
+        gravity: 0.1 // The force of gravity
     };
     
     balls.push(newBall);
@@ -192,19 +170,23 @@ function update() {
                 box.y = stickyY - box.height; 
             }
         }
-        // **REMOVED** The 'else' block for the teleport timer
     }
 
-    // --- 2. Update Balls ---
-    // We loop backwards so we can safely remove balls from the array
+    // --- 2. Update Balls (UPDATED) ---
     for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
         
-        // Apply gravity to ball
-        ball.y += ball.velocityY;
+        // --- Apply Arc Physics ---
+        // 1. Apply gravity to the vertical speed
+        ball.speedY += ball.gravity; 
+        
+        // 2. Update position based on new speeds
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
 
         // --- Ball-to-Line Collision (Disappear) ---
         const lineY = getLineY(ball.x);
+        // Check the bottom of the ball
         if (ball.y + ball.radius >= lineY) {
             balls.splice(i, 1); // Remove the ball
             continue; // Skip to the next ball
@@ -212,7 +194,7 @@ function update() {
 
         // --- Ball-to-Box Collision (Teleport) ---
         for (const box of boxes) {
-            // Simple check: is the ball's center inside the box?
+            // Check if the ball's center is inside the box
             if (ball.x > box.x && 
                 ball.x < box.x + box.width && 
                 ball.y > box.y && 
@@ -229,11 +211,6 @@ function update() {
 /**
  * Clears the canvas and draws all game objects
  */
-// ... (all the code above this function is the same) ...
-
-/**
- * Clears the canvas and draws all game objects
- */
 function draw() {
     // A. Clear the whole canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -242,16 +219,10 @@ function draw() {
     ctx.lineWidth = line.width;
     ctx.strokeStyle = line.color;
     ctx.beginPath();
-    
-    // Move to the first point
     ctx.moveTo(linePoints[0].x, linePoints[0].y);
-
-    // Draw a straight line to every other point in the array
     for (let i = 1; i < linePoints.length; i++) {
         ctx.lineTo(linePoints[i].x, linePoints[i].y);
     }
-    
-    // Stroke the path
     ctx.stroke();
 
     // C. Draw the boxes
@@ -268,8 +239,6 @@ function draw() {
         ctx.fill();
     }
 }
-
-// ... (the rest of the code below this is the same) ...
 
 
 // --- 5. MAIN ANIMATION LOOP ---
@@ -291,6 +260,6 @@ function onResize() {
 
 // --- 7. START EVERYTHING ---
 window.addEventListener('resize', onResize);
-canvas.addEventListener('mousedown', createBall); 
+canvas.addEventListener('mousedown', createBall);
 onResize();
 gameLoop();

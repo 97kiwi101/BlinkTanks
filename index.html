@@ -1,13 +1,26 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>my-todo-app</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiggily Line</title>
+    <style>
+        /* Basic CSS to make the canvas fill the entire screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: #111; /* Dark background */
+        }
+
+        /* Style the canvas itself */
+        #wiggilyCanvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="wiggilyCanvas"></canvas>
+    <script src="grav.js"></script>
+</body>
 </html>
