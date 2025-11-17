@@ -1,11 +1,28 @@
 export const TurnManager = {
-    players: ["player1", "player2"],
+    players: [],
+    tanks: {},
+
     currentIndex: 0,
 
 
     // Who's turn is it
     get currentPlayer() {
         return this.players[this.currentIndex];
+    },
+
+    registerPlayers(player1, player2, tankMap) {
+        this.players = [player1, player2];
+        this.tanks = tankMap;
+    
+    },
+
+    executeAction(playerName, actionFunction, ...args) {
+        if (playerName !== this.currentPlayer) {
+            return;
+        }
+
+        actionFunction(...args);
+        this.nextTurn();
     },
 
     // Switch to next player's turn
