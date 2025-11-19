@@ -108,36 +108,48 @@ function teleportBox(box) {
     box.isFalling = true;
 }
 
-/**
- * **UPDATED FUNCTION**
- * Creates a ball at the mouse's click position with a CONSISTENT arc
- */
 function createBall(event) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
+    
+    // Prompt for total velocity (e.g., 10)
+    const totalVelocityStr = prompt("Enter Total Velocity (e.g., 10):", "10");
+    const totalVelocity = parseFloat(totalVelocityStr);
 
-    // --- NEW: Determine consistent speed based on click side ---
-    const middleX = canvas.width / 2;
-    let initialSpeedX;
+    // Prompt for angle (e.g., 90 is straight up, 0 is right)
+    const angleStr = prompt("Enter Angle in Degrees (e.g., 90 is up, 45 is up-right):", "45");
+    const angleInDegrees = parseFloat(angleStr);
 
-    if (mouseX < middleX) {
-        // Clicked on the left, fire right
-        initialSpeedX = 3;
-    } else {
-        // Clicked on the right, fire left
-        initialSpeedX = -3;
+    // Stop if the input is invalid
+    if (isNaN(totalVelocity) || isNaN(angleInDegrees)) {
+        alert("Invalid input. Please enter numbers.");
+        return; // Exit the function
     }
 
+    // --- 2. Calculate Velocities ---
+
+    // Convert the user's angle from degrees to radians for Math functions
+    const angleInRadians = angleInDegrees * (Math.PI / 180);
+
+    // Calculate the X and Y components using trigonometry
+    const initialSpeedX = totalVelocity * Math.cos(angleInRadians);
+    
+    // We use a negative sign for Y because in canvas, a positive Y moves DOWN.
+    // So, a positive sine (for an upward angle) must be made negative.
+    const initialSpeedY = -(totalVelocity * Math.sin(angleInRadians));
+
+
+    // --- 3. Create the Ball ---
     const newBall = {
         x: mouseX,
         y: mouseY,
         radius: 5,
         color: 'hsl(60, 100%, 75%)', // Bright yellow
         
-        // --- NEW: Use consistent speeds, not random ---
+        // Use the new calculated speeds
         speedX: initialSpeedX,
-        speedY: -6,  // Always fire with a strong upward speed
+        speedY: initialSpeedY,
         gravity: 0.1 // The force of gravity
     };
     
