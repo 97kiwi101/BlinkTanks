@@ -305,18 +305,18 @@ function checkWinCondition() {
     const p1 = TurnManager.tanks["P1"].tank;
     const p2 = TurnManager.tanks["P2"].tank;
 
-    // If PLAYER dies → AI wins
+    
     if (!p1.isAlive) { 
         gameEnded = true;
-        scoreboard.addAIWin();        // FIXED (you previously awarded the player)
+        scoreboard.addAIWin();        
         updateScoreDisplay();
         return endGame("CPU Wins!");
     }
 
-    // If CPU dies → Player wins
+
     if (!p2.isAlive) { 
         gameEnded = true;
-        scoreboard.addPlayerWin();     // FIXED (you previously awarded the AI)
+        scoreboard.addPlayerWin();     
         updateScoreDisplay();
         return endGame("Player Wins!");
     }
