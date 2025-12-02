@@ -86,14 +86,16 @@ export const GravEngine = {
     },
 
     // -------- PROJECTILES --------
-    spawnProjectile(x, y, speedX, speedY, shooter = null) {
+    spawnProjectile(x, y, speedX, speedY, shooter = null, radius = 5, color = 'yellow', damage = 3) {
     this.balls.push({
         x, y,
-        radius: 5,
-        color: 'yellow',
-        speedX, speedY,
+        radius,
+        color,
+        speedX,
+        speedY,
         gravity: 0.1,
-        shooter // store who fired it
+        shooter,
+        damage // store damage here for game.js to use
     });
 },
 

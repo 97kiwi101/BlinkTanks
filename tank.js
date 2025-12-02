@@ -1,24 +1,28 @@
 export class Tank {
     constructor(id, x, y, color, width, height, hp, ammotype) {
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.color = color;
-        this.width = width;
-        this.height = height;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.width = width;
+    this.height = height;
+    this.maxHP = hp;
+    this.hp = hp;
+    this.ammo = ammotype;
+    this.isAlive = true;
+    this.updateDamage();
+}
 
-        // Combat stats
-        this.maxHP = hp;
-        this.hp = hp;
-        this.ammo = ammotype;      
-        if (this.ammo === "basic"){
-            this.damage = 3;
-        }
-        
+switchAmmo(newammo) {
+    this.ammo = newammo;
+    this.updateDamage();
+}
 
-        this.isAlive = true;
-    }
-
+updateDamage() {
+    if (this.ammo === 'basic') this.damage = 3;
+    else if (this.ammo === 'triple') this.damage = 2;
+    else if (this.ammo === 'sniper') this.damage = 4;
+}
     takeDamage(amount) {
         if (!this.isAlive) return;
 
@@ -29,12 +33,7 @@ export class Tank {
         }
     }
 
-    switchAmmo(newammo) {
-        this.ammo = newammo;
-        if (this.newammo === 'basic') {
-            this.damage = 3;
-        }
-    }
+    
 
     heal(amount) {
         this.hp += amount;

@@ -5,6 +5,7 @@ export const TurnManager = {
     currentIndex: 0,
 
 
+
     // Who's turn is it
     get currentPlayer() {
         return this.players[this.currentIndex];
@@ -34,5 +35,13 @@ export const TurnManager = {
     // Prevent inputs when not your turn
     isTurn(playerName) {
         return this.currentPlayer === playerName;
+    },
+
+    getOtherPlayerTank(currentTank) {
+    for (const playerName of this.players) {
+        const info = this.tanks[playerName];
+        if (info.tank !== currentTank) return info.tank;
     }
+    return null;
+}
 };
