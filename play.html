@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Title - Blink Tanks></title>
+    <title>Wiggily Line</title>
     <style>
+        /* Basic CSS to make the canvas fill the entire screen */
         body, html {
             margin: 0;
             padding: 0;
             overflow: hidden; /* Hide scrollbars */
             background-color: #111; /* Dark background */
-            color:white;
-            text-align:center;
         }
-        footer {
-            color:lightgray;
-            height:50px;
+
+        /* Style the canvas itself */
+        #wiggilyCanvas {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <h1>Blink Tanks</h1>
-    <a href="play.html">Play</a>
-    <footer>Temporary UI prior to React frontend implementation</footer>
+    <canvas id="wiggilyCanvas"></canvas>
+    <script type="module" src="Game.js"></script>
 </body>
 </html>
