@@ -58,6 +58,76 @@ document.body.appendChild(ammoContainer);
     ammoContainer.appendChild(btn);
 });
 
+// --- Wind API UI ---
+const windContainer = document.createElement('div');
+windContainer.style.position = 'absolute';
+windContainer.style.top = '50px';
+windContainer.style.left = '10px';
+windContainer.style.background = 'rgba(0, 0, 0, 0.5)';
+windContainer.style.padding = '5px';
+windContainer.style.borderRadius = '5px';
+document.body.appendChild(windContainer);
+
+const cityInput = document.createElement('input');
+cityInput.type = 'text';
+cityInput.placeholder = 'Enter City (e.g. London)';
+cityInput.style.marginRight = '5px';
+windContainer.appendChild(cityInput);
+
+const fetchWindBtn = document.createElement('button');
+fetchWindBtn.innerText = 'Set Wind';
+fetchWindBtn.onclick = async () => {
+    const rawCity = cityInput.value;
+    if (!rawCity) return;
+    const city = encodeURIComponent(rawCity.trim());
+
+    fetchWindBtn.innerText = "Loading...";
+
+    try {
+        // Step A: Get Coordinates
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=en&format=json`;
+        const geoRes = await fetch(geoUrl);
+        if (!geoRes.ok) throw new Error(`Geocoding HTTP error: ${geoRes.status}`);
+        const geoData = await geoRes.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+            alert("City not found! Please check spelling.");
+            fetchWindBtn.innerText = 'Set Wind';
+            return;
+        }
+
+        const { latitude, longitude, name } = geoData.results[0];
+
+        // Step B: Get Weather
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+        const weatherRes = await fetch(weatherUrl);
+        if (!weatherRes.ok) throw new Error(`Weather HTTP error: ${weatherRes.status}`);
+        const weatherData = await weatherRes.json();
+
+        // Step C: Apply Physics
+        if (!weatherData.current_weather) throw new Error("API returned no weather data.");
+
+        const speed = weatherData.current_weather.windspeed;
+        const direction = weatherData.current_weather.winddirection;
+        
+        // 0-180 blows right (+), 180-360 blows left (-)
+        const multiplier = (direction >= 0 && direction <= 180) ? 1 : -1;
+        
+        // Update GravEngine wind
+        GravEngine.wind = speed * multiplier;
+
+        alert(`Success! Weather in ${name}:\nWind Speed: ${speed} km/h\nDirection: ${direction}°`);
+        fetchWindBtn.innerText = 'Set Wind';
+        cityInput.blur(); 
+
+    } catch (err) {
+        console.error("Full API Error:", err); 
+        alert(`Error: ${err.message}`);
+        fetchWindBtn.innerText = 'Set Wind';
+    }
+};
+windContainer.appendChild(fetchWindBtn);
+
 // ---- Scoreboard UI Setup ----
 const scoreEl = document.createElement('div');
 scoreEl.style.position = 'absolute';
@@ -76,8 +146,6 @@ function updateScoreDisplay() {
     const s = scoreboard.getScores();
     scoreEl.textContent = `Player: ${s.player}  |  AI: ${s.ai}`;
 }
-
-// initial draw
 updateScoreDisplay();
 
 // --- Mouse Drag Shooting ---
@@ -118,7 +186,7 @@ canvas.addEventListener('mouseup', e => {
     TurnManager.nextTurn();
 });
 
-// --- Fire Projectile based on ammo ---
+// --- Fire Projectile ---
 function fireTankProjectile(box, tank) {
     const startX = box.x + box.width / 2;
     const startY = box.y + box.height / 2;
@@ -136,17 +204,17 @@ function fireTankProjectile(box, tank) {
 
     switch (tank.getCurrentAmmo()) {
         case 'basic':
-            radius = 10; // bigger ball
+            radius = 10;
             shots.push({ vx: speedX, vy: speedY });
             break;
         case 'triple':
-            radius = 5; // old basic size
+            radius = 5; 
             shots.push({ vx: speedX, vy: speedY });
             shots.push({ vx: speedX, vy: speedY * 0.95 });
             shots.push({ vx: speedX, vy: speedY * 1.05 });
             break;
         case 'sniper':
-            radius = 3; // small for precision
+            radius = 3; 
             shots.push({ vx: speedX, vy: speedY });
             break;
     }
@@ -223,7 +291,7 @@ function drawWorld() {
     });
 }
 
-function drawTrajectory(startX, startY, speedX, speedY) {
+function drawTrajectory(startX, startY, speedX, speedY, radius) {
     let previewX = startX;
     let previewY = startY;
     let vx = speedX;
@@ -236,6 +304,9 @@ function drawTrajectory(startX, startY, speedX, speedY) {
 
     for (let i = 0; i < 60; i++) {
         vx *= 0.995;
+        // NEW: Preview the wind effect based on ammo radius
+        vx += ((GravEngine.wind || 0) * 0.025) / radius;
+        
         vy += 0.1;
         previewX += vx;
         previewY += vy;
@@ -267,7 +338,16 @@ function draw() {
         const distance = Math.sqrt(dx*dx + dy*dy);
         const power = Math.min(distance / 8, 12);
         const angle = Math.atan2(dy, dx);
-        drawTrajectory(tankX, tankY, power * Math.cos(angle), power * Math.sin(angle));
+        
+        // Determine radius for trajectory preview
+        let radius = 5; 
+        switch (tank.getCurrentAmmo()) {
+            case 'basic': radius = 10; break;
+            case 'triple': radius = 5; break;
+            case 'sniper': radius = 3; break;
+        }
+
+        drawTrajectory(tankX, tankY, power * Math.cos(angle), power * Math.sin(angle), radius);
     }
 }
 
@@ -286,11 +366,9 @@ function maybeRunCPU() {
 
     if (cpuActedThisTurn) return;
     const box = GravEngine.boxes.find(b => b.tankRef === info.tank);
-    if (!box || box.isFalling || GravEngine.balls.length > 0) return; // wait for all balls
+    if (!box || box.isFalling || GravEngine.balls.length > 0) return; 
 
     cpuActedThisTurn = true;
-
-    // Simple ammo choice for CPU (random)
     const ammoOptions = ['basic', 'triple', 'sniper'];
     const choice = ammoOptions[Math.floor(Math.random() * ammoOptions.length)];
     info.tank.switchAmmo(choice);
@@ -301,11 +379,9 @@ function maybeRunCPU() {
 // --- Win/Lose ---
 function checkWinCondition() {
     if (gameEnded) return true;
-
     const p1 = TurnManager.tanks["P1"].tank;
     const p2 = TurnManager.tanks["P2"].tank;
 
-    
     if (!p1.isAlive) { 
         gameEnded = true;
         scoreboard.addAIWin();        
@@ -313,32 +389,27 @@ function checkWinCondition() {
         return endGame("CPU Wins!");
     }
 
-
     if (!p2.isAlive) { 
         gameEnded = true;
         scoreboard.addPlayerWin();     
         updateScoreDisplay();
         return endGame("Player Wins!");
     }
-
     return false;
 }
 
 let gameLoopId;
 function endGame(message) {
     cancelAnimationFrame(gameLoopId);
-
     GravEngine.balls = [];
     cpuActedThisTurn = true;
 
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(canvas.width / 2 - 160, canvas.height / 2 - 40, 320, 80);
-
     ctx.fillStyle = 'white';
     ctx.font = '36px Arial';
     ctx.fillText(message, canvas.width / 2 - ctx.measureText(message).width / 2, canvas.height / 2 + 10);
 
-    // Prevent duplicate buttons
     if (!document.getElementById("restartBtn")) {
         const restartBtn = document.createElement('button');
         restartBtn.id = "restartBtn";
@@ -350,7 +421,6 @@ function endGame(message) {
         restartBtn.onclick = () => window.location.reload();
         document.body.appendChild(restartBtn);
     }
-
     return true;
 }
 
@@ -361,5 +431,4 @@ function gameLoop() {
     maybeRunCPU();
     gameLoopId = requestAnimationFrame(gameLoop);
 }
-
 gameLoop();
