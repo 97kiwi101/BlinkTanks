@@ -5,23 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Title - Blink Tanks></title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
+        body{
             overflow: hidden; /* Hide scrollbars */
-            background-color: #111; /* Dark background */
-            color:white;
-            text-align:center;
+            background-color: #111; /* Dark background */display:flex;
+            justify-content: center;
+            align-items: center;
         }
-        footer {
-            color:lightgray;
-            height:50px;
+        .container{
+            width: 50vw;
+            height: 80vh;
+            min-width: fit-content;
+            min-height:300px;
+
+            border: 2px solid white;
+            border-radius: 5px;
+            
+            display:flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        h1{
+            color: white;
+            font-size: max(12vh,72px);
+        }
+        .button {
+            background-color: green;
+            border-radius:5px;
+            color: white;
+            padding: 1.5vh 2vw;
+            text-align: center;
+            text-decoration: none;
+
+            font-size: max(4vh,24px);
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Blink Tanks</h1>
-    <a href="play.html">Play</a>
-    <footer>Temporary UI prior to React frontend implementation</footer>
+    <div class="container">
+        <h1>Blink Tanks</h1>
+        <a href="play.html" class="button">Play</a>
+    </div>
 </body>
 </html>
